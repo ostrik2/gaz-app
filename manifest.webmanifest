@@ -1,0 +1,22 @@
+{
+  "name": "Протокол газовых измерений — шпаргалка",
+  "short_name": "Газовые измерения",
+  "description": "Офлайн-шпаргалка по ГОСТ: подготовка патронов, измерительное сечение, скорость и расход, отбор на запылённость, газовый анализ, неопределённость. Расчёты с блокировками и автопроверками приборов.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0f172a",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+    {"src": "icons/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Расчёты", "url": "index.html#calc"},
+    {"name": "Приборы", "url": "index.html#dev"}
+  ]
+}

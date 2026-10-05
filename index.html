@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Протокол газовых измерений — шпаргалка</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#0b1220;--card:#131c2e;--card2:#182338;--line:#24314d;--txt:#e6edf7;--mut:#93a4c0;--ok:#2fbf71;--warn:#f0a92c;--bad:#e5484d;--acc:#4c8dff;--mark:#ffd166}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:80px}
+header{position:sticky;top:0;z-index:20;background:#0b1220f2;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 12px 0}
+h1{font-size:16px;margin:0 0 6px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+.badge.warn{border-color:#7a5a15;color:var(--mark);background:#2a1f08}
+.badge.ok{border-color:#1d5c3a;color:var(--ok)}
+.badge.bad{border-color:#7a2023;color:var(--bad);background:#2a0e10}
+input[type=text],input[type=number],input[type=date],select,textarea{background:#0e1626;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 10px;font:inherit;width:100%}
+label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+.ck{display:flex;gap:10px;align-items:flex-start;padding:8px;border:1px solid var(--line);border-radius:10px;margin:6px 0;background:var(--card2)}
+.ck input{width:20px;height:20px;flex:0 0 20px;margin-top:2px}
+nav{display:flex;gap:4px;margin-top:8px;overflow-x:auto}
+nav button{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mut);padding:10px 12px;font:inherit;white-space:nowrap}
+nav button.on{color:var(--txt);border-bottom-color:var(--acc)}
+main{padding:12px;max-width:900px;margin:0 auto}
+.phase{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 12px;overflow:hidden}
+.phase>button{width:100%;background:none;border:0;color:var(--txt);padding:14px;text-align:left;font:inherit;display:flex;gap:10px;align-items:center}
+.phase .sub{font-size:12px;color:var(--mut);display:block;margin-top:3px}
+.pin{flex:0 0 30px;height:30px;border-radius:9px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;font-weight:600;font-size:12px}
+.step{border-top:1px solid var(--line)}
+.step>button{width:100%;background:none;border:0;color:var(--txt);padding:12px 14px;text-align:left;font:inherit;display:flex;gap:10px}
+.done{color:var(--ok)}.blocked{color:var(--bad)}
+.body{padding:0 14px 16px}
+.gost{font-size:12px;color:var(--mark);background:#2a1f08;border:1px solid #7a5a15;border-radius:8px;padding:6px 8px;margin:6px 0}
+.gost b{color:#ffe0a3}
+.act{font-size:14px;margin:8px 0}
+.hint{font-size:13px;color:var(--mut);border-left:3px solid var(--acc);padding:8px 10px;background:#0e1626;border-radius:0 8px 8px 0;margin:10px 0}
+.warn{font-size:13px;color:#ffd7a1;background:#2a1a08;border:1px solid #7a4a15;border-radius:8px;padding:8px 10px;margin:8px 0}
+.crit{font-size:13px;color:#ffc2c4;background:#2a0e10;border:1px solid #7a2023;border-radius:8px;padding:8px 10px;margin:8px 0}
+.accept{font-size:12px;color:var(--ok);margin-top:8px}
+.calc{background:#0a1524;border:1px solid var(--line);border-radius:10px;padding:10px;margin:10px 0;font-size:13px}
+.calc .l{color:var(--mark);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:7px;text-align:left;vertical-align:top}
+th{background:var(--card2);font-size:12px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.todo{color:var(--mark)}
+.bar{height:6px;background:#0e1626;border-radius:6px;overflow:hidden;margin:8px 0}
+.bar>i{display:block;height:100%;background:var(--acc)}
+.sm{font-size:12px;color:var(--mut)}
+.nav2{display:flex;gap:8px;margin-top:10px}
+.nav2 button{flex:1;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px;font:inherit}
+.hide{display:none}
+@media print{body{background:#fff;color:#000}.phase,.card,.calc,.ck{border-color:#999;background:#fff}.head-hide,nav,.bar{display:none}.step .body{display:block!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Протокол газовых измерений — пошаговая шпаргалка</h1>
+  <div class="row">
+    <span class="badge" id="netBadge">офлайн-режим</span>
+    <span class="badge" id="validBadge"></span>
+    <span class="badge" id="progBadge"></span>
+  </div>
+  <label style="margin:8px 0 2px">Дата выполнения работ (для проверки сроков поверки)</label>
+  <input type="date" id="workDate">
+  <nav>
+    <button data-tab="steps" class="on">Этапы</button>
+    <button data-tab="calc">Расчёты</button>
+    <button data-tab="dev">Приборы</button>
+    <button data-tab="std">Стандарты</button>
+    <button data-tab="exp">Экспорт</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-steps"></section>
+  <section id="tab-calc" class="hide"></section>
+  <section id="tab-dev" class="hide"></section>
+  <section id="tab-std" class="hide"></section>
+  <section id="tab-exp" class="hide"></section>
+</main>
+
+<script src="data/data.js"></script>
+<script>
+const D = window.GAZ_DATA, LS='gazlab.v2';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:null};
+const fmt=(v,d=3)=>v===null||v===undefined||!isFinite(v)?'—':(Math.abs(v)>=1e5||(Math.abs(v)<1e-3&&v!==0))?v.toExponential(3):(+v.toFixed(d)).toString().replace('.',',');
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+let S=load();
+function load(){try{return Object.assign({v:{},date:'',verifiedStd:{}},JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){return{v:{},date:'',verifiedStd:{}}}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+const allSteps=()=>D.phases.flatMap(p=>p.steps.map(s=>({...s,phase:p.phase})));
+function st(id){return S.v[id]||(S.v[id]={f:{},c:{}})}
+function isDone(s){const x=st(s.id),req=(s.fields||[]).filter(f=>f.required);
+  const fOk=req.every(f=>f.type==='check'?x.c[f.k]:String(x.f[f.k]??'').trim()!=='');
+  const cOk=(s.checklist||[]).every((_,i)=>x.c['ck'+i]);
+  return fOk&&cOk&&(!s.blockers||s.blockers.every(b=>!isBlocked(b,x,s)))}
+function isBlocked(b,x,s){const fb=(s.fields||[]).find(f=>f.k===b);
+  if(fb)return fb.type==='check'?!x.c[b]:String(x.f[b]??'').trim()==='';
+  return false}
+
+/* ---------- расчёты ---------- */
+/* ВСЕ ДАВЛЕНИЯ В ГПА. Нормальное давление = 1013,3 гПа (= 101,325 кПа = 760 мм рт.ст.).
+   Делить на 101,3 можно ТОЛЬКО при давлении в кПа. */
+const PN=1013.3;                     // гПа
+const T0=273.15;
+const E=t=>6.112*Math.exp(17.67*t/(t+243.5));           // давление насыщ. пара, гПа (Магнус)
+/* Абсолютная влажность при н.у., г/м³: f = 0.79328·φ·E(t).
+   Внимание: 622·φE/(Pг−φE) — это влагосодержание в г/кг СУХОГО воздуха, а не в г/м³.
+   Магнус применим до ~99 °C, выше — уравнение Антуана (мм рт.ст. → гПа: ×1.33322). */
+const ES=(t)=> t<99 ? 6.112*Math.exp(17.62*t/(243.12+t)) : Math.pow(10,8.14019-1810.94/(244.485+t))*1.33322;
+const C={};
+C.de=(v)=>{const a=num(v.aOut),b=num(v.bOut),dr=num(v.deltaWall),d=num(v.diamOut);
+  if(v.shape==='круглое')return d!==null?d:null; if(a===null||b===null||dr===null)return null;
+  const A=a-2*dr,B=b-2*dr; return A>0&&B>0?2*A*B/(A+B):null};   // гидравлический диаметр 4A/P
+C.area=(v)=>{const a=num(v.aOut),b=num(v.bOut),dr=num(v.deltaWall),d=num(v.diamOut);
+  if(v.shape==='круглое')return d!==null?Math.PI*d*d/4:null; if(a===null||b===null||dr===null)return null;
+  const A=a-2*dr,B=b-2*dr; return A>0&&B>0?A*B:null};
+C.uArea=(v)=>{const ut=num(v.tapeAcc),ud=num(v.caliperAcc),a=num(v.aOut),b=num(v.bOut),dr=num(v.deltaWall);
+  if(ut===null||ud===null||a===null||b===null||dr===null)return null; if(!C.area(v))return null;
+  const A=a-2*dr,B=b-2*dr;
+  const uA=Math.hypot(ut,2*ud), uB=Math.hypot(ut,2*ud);       // одна рулетка на оба размера
+  return 100*Math.sqrt((uA/A)**2+(uB/B)**2)};
+C.straightRun=(v)=>{const de=C.de(v),up=num(v.distUp),dn=num(v.distDown);
+  if(de===null||up===null||dn===null)return null;
+  const needU=4*de,needD=de;
+  return{de,needU,needD,up,dn,rUp:up/de,rDn:dn/de,okUp:up>=needU,okDn:dn>=needD,ok:up>=needU&&dn>=needD}};
+C.gridCoords=(v)=>{const a=num(v.aOut),b=num(v.bOut),dr=num(v.deltaWall);
+  if(v.gridN==='12 точек (круг)'||v.shape==='круглое')return{circ:[0.044,0.146,0.296,0.704,0.854,0.956].map(k=>'0,'+k+'D … '+(1-k)+'D')};
+  const m=/^(\d)×(\d)$/.exec(v.gridN||''); if(!m||a===null||b===null||dr===null)return null;
+  const n=+m[1],A=a-2*dr,B=b-2*dr,ax=[],bx=[];
+  for(let i=0;i<n;i++)ax.push(+((i+0.5)*A/n).toFixed(3));
+  for(let j=0;j<n;j++)bx.push(+((j+0.5)*B/n).toFixed(3));
+  return{n,ax,bx,cell:+(A/n*(B/n)).toFixed(4),total:n*n*+(A/n*(B/n)).toFixed(4)}};
+C.prSt=(v)=>{const B=num(v.bAtm),p=num(v.pStat); return B===null||p===null?null:B-p};
+C.rhoGas=(v)=>{const t=num(v.tGas),B=num(v.bAtm),p=num(v.pStat),r0=num(v.rho0Dry),ph=num(v.phiGas);
+  if(t===null||B===null||p===null||r0===null)return null;
+  const Pg=B-p, T=T0+t, T0n=T0;
+  if(ph===null)return 100*(Pg*r0*T0n/101325)/T;          // сухой газ
+  const pv=ph*ES(t)/100, ps=Pg-pv;                          // давление пара, гПа (φ в %)
+  const rhoDry=100*(ps*r0*T0n/101325)/T, rhoWat=100*(pv*18.016e-3/8.314)/T;
+  return rhoDry+rhoWat};
+C.f=(v)=>{const t=num(v.tGas),B=num(v.bAtm),p=num(v.pStat),ph=num(v.phiGas);
+  if(t===null||B===null||p===null||ph===null)return null;
+  const Pg=B-p, pv=ph*ES(t)/100;
+  if(pv>=Pg)return{note:'газ насыщен — конденсационный метод по ГОСТ 17.2.4.08-90'};
+  return{pv, f:pv*0.79328}};
+C.dP=(v)=>{const P=(v.dpPoints||'').split(/[,;\s]+/).map(num).filter(x=>x!==null);
+  const K=num(v.kMicro),kt=num(v.ktPitot); if(!P.length)return null; const k=(K===null?1:K)*(kt===null?1:kt);
+  const dp=P.map(x=>k*Math.abs(x)); return{raw:P,dp,k,avg:dp.reduce((a,b)=>a+b,0)/dp.length}};
+C.velocities=(v)=>{const d=C.dP(v),rho=C.rhoGas(v); if(!d||!rho||rho<=0)return null;
+  const vi=d.dp.map(x=>Math.sqrt(2*x/rho));
+  return{...d,rho,vi,mean:vi.reduce((a,b)=>a+b,0)/vi.length,
+    meanFromAvg:Math.sqrt(2*d.avg/rho),min:Math.min(...vi),max:Math.max(...vi)}};
+C.vMean=(v)=>{const r=C.velocities(v); if(!r)return null;
+  return v.avgMode?.startsWith('скорость')?r.meanFromAvg:r.mean};
+C.qRaw=(v)=>{const vm=C.vMean(v),S=C.area(v); return vm===null||!S?null:{vm,S,q:vm*S}};
+C.qNorm=(v)=>{const q=C.qRaw(v),pr=C.prSt(v),t=num(v.tGas);
+  if(!q||pr===null||t===null)return null; const f=pr/1013.3*273/(273+t); return{...q,factor:f,qn:q.q*f}};
+C.resCheck=(v)=>{const res=num(v.microRes),rho=C.rhoGas(v);
+  if(res===null||rho===null)return null;
+  const dp=0.5*rho*4*4;                       // ΔP при минимально допустимой скорости 4 м/с
+  const uQ=res/Math.sqrt(12);                 // стандартная неопределённость отсчёта (дискретность)
+  return{res,rho,dpAt4:dp,uDp:uQ,uRel:100*uQ/dp,ok:res<=dp/10}};
+C.uV=(v)=>{const r=C.velocities(v),res=num(v.microRes),acc=num(v.microAcc)||0;
+  if(!r||res===null||r.avg<=0)return null;
+  const uq=res/Math.sqrt(12);                          // квантование
+  const ua=acc/100*r.avg;                              // класс точности: % от показания
+  const uDp=Math.hypot(uq,ua);
+  const relQpct=100*uDp/r.avg;
+  const rel=0.5*relQpct;                               // v ∝ √ΔP
+  return{uDeltaP:uDp,relQpct,relVel:rel,ok:rel<20}};
+C.isoFlow=(v)=>{const vv=num(v.vLocal),d=num(v.tipDia); if(vv===null||d===null)return null;
+  const S=Math.PI*(d/1000)**2/4; return{d,areaTip:S,qM3s:vv*S,qLmin:vv*S*60000}};
+C.isoDeviation=(v)=>{const qt=num(v.qTarget),qa=num(v.qActual);
+  if(qt===null||qa===null||qt===0)return null; return 100*(qa-qt)/qt};
+/* V — объём отобранной пробы при РАБОЧИХ условиях, л. V₀ = V·k приводится к н.у.
+   Z [мг/м³] = Δm [г] · 10⁶ / V₀ [л]   — единицы согласованы: г/л → мг/м³ */
+C.v0Norm=(v)=>{const V=num(v.vLiters),B=num(v.bZ),p=num(v.pZ),t=num(v.tZ);
+  if(V===null||B===null||p===null||t===null)return null;
+  const k=(B-p)/1013.3*273/(273+t);
+  return{rawLiters:V,factor:k,v0:V*k}};
+C.zDust=(v)=>{const m1=num(v.m1n),m2=num(v.m2n),o=C.v0Norm(v);
+  if(m1===null||m2===null||!o||o.v0<=0)return null;
+  const dm=m2-m1;
+  return{...o,dm,z_mgm3:dm*1e6/o.v0,z_gm3:dm*1e3/(o.v0/1000)}};
+C.mDust=(v)=>{const z=C.zDust(v),q=C.qNorm(v); if(!z||!q)return null;
+  return{...z,zMgm3:z.z_mgm3,Mgs:z.z_mgm3*q.qn/1000}};
+C.mDustYear=(v)=>{const m=C.mDust(v),h=num(v.tHours); if(!m||h===null)return null; return{...m,ty: m.Mgs*3600*h/1e6}};
+C.deltaM=(v)=>{const m1=num(v.m1n),m2=num(v.m2n); if(m1===null||m2===null)return null;
+  return{m1,m2,dm:m2-m1,dmMg:(m2-m1)*1000}};
+C.deltaMassConstant=(v)=>{const a=num(v.m1n),b=num(v.m1np); if(a===null||b===null)return null;
+  const d=Math.abs(a-b); return{d,dMg:d*1000,ok:d<=0.0005}};
+C.uDm=(v)=>{const um=num(v.uMass),rep=(v.m2rep||'').split(/[,;\s]+/).map(num).filter(x=>x!==null);
+  let u=um; if(rep.length>1){const m=rep.reduce((a,b)=>a+b,0)/rep.length,s=Math.sqrt(rep.reduce((a,b)=>a+(b-m)**2,0)/(rep.length-1));
+    u=Math.max(um??0,s/Math.sqrt(rep.length));}
+  const d=C.deltaM(v); if(u===null||!d)return null;
+  return{u, uDm:Math.SQRT2*u, rel:100*Math.SQRT2*u/Math.abs(d.dm)}};
+C.gainCheck=(v)=>{const d=C.deltaM(v),t=num(v.dmTargetMg); if(!d||t===null)return null;
+  return{...d,target:t,ok:d.dmMg>=t,ratio:d.dmMg/t}};
+C.sampleVolume=(v)=>{const z=num(v.zExpected),m=num(v.dmTargetMg); if(z===null||m===null||z<=0)return null;
+  return{z,m,v0Liters:m/z}};
+C.sampleTime=(v)=>{const sv=C.sampleVolume(v),fl=C.isoFlow(v),pr=C.prSt(v),t=num(v.tGas),lim=num(v.timerLimit);
+  if(!sv||!fl||pr===null||t===null)return null;
+  const fac=pr/1013.3*273/(273+t), q0=fl.qM3s*fac*60000;
+  const min=sv.v0Liters/(q0||1e-9);
+  return{...sv,q0Lmin:q0,min,overLim:lim!==null&&min>lim}};
+C.v0Sample=(v)=>{const q=num(v.qActual),t=num(v.tActualMin),pr=C.prSt(v),tg=num(v.tGasOnSample);
+  const B=num(v.bOnSample),p=num(v.pStatOnSample);
+  if(q===null||t===null)return null;
+  const V=q*t, fac=(B!==null&&p!==null&&tg!==null)?(B-p)/1013.3*273/(273+tg):null;
+  return{V_L:V,factor:fac,v0:fac?V*fac:null}};
+C.lambdaCalc=(v)=>{const o2=num(v.o2avg); return o2===null||o2>=21?null:21/(21-o2)};
+C.cNorm=(v)=>{const f=C.qNorm(v); return f?f.factor:null};
+C.gases=(v)=>{const out={}; for(const [k,lab] of [['o2List','O₂'],['coList','CO'],['noList','NO'],['so2List','SO₂'],['noxList','NOx']]){
+  const arr=(v[k]||'').split(/[,;\s]+/).map(num).filter(x=>x!==null);
+  if(!arr.length)continue; const mean=arr.reduce((a,b)=>a+b,0)/arr.length;
+  const sd=arr.length>1?Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/(arr.length-1)):0;
+  out[lab]={n:arr.length,mean,sd};} return out};
+C.mComp=(v)=>{const f=C.cNorm(v),q=C.qNorm(v); if(f===null||!q)return null;
+  const g=C.gases(v),out={};
+  for(const c of Object.keys(g))out[c]={Cn:g[c].mean*f,Mgs:g[c].mean*f*q.qn/1000};
+  return out};
+C.mCompYear=(v)=>{const m=C.mComp(v),h=num(v.tHours); if(!m||h===null)return null;
+  const o={}; for(const c in m)o[c]={...m[c],ty:m[c].Mgs*3600*h/1e6}; return o};
+C.uBudgetQ=(v)=>{const ud=num(v.uDpRel),ur=num(v.uRhoRel),us=num(v.uAreaRel),k=num(v.kCov)??2;
+  if(ud===null||ur===null||us===null)return null;
+  const uV=100*Math.sqrt((ud/2)**2+(ur/2)**2), uQ=100*Math.sqrt((ud/2)**2+(ur/2)**2+us**2);
+  return{k,uVelPct:uV,uQuaPct:uQ,Uvel:k*uV,Uq:k*uQ}};
+C.uBudgetZ=(v)=>{const u=C.uDm(v),uv=num(v.uV0Rel),ls=num(v.losses),k=num(v.kCov)??2;
+  if(!u||uv===null||ls===null)return null;
+  const uZ=100*Math.sqrt(u.rel**2+uv**2+ls**2); return{k,uZuaPct:uZ,UZ:k*uZ,uDm:u.uDm}};
+C.uBudgetGas=(v)=>{const ug=num(v.uGasRel),um=num(v.uMethodRel),k=num(v.kCov)??2;
+  if(ug===null||um===null)return null; const u=100*Math.sqrt(ug**2+um**2);
+  return{k,uPct:u,U:k*u,limitOK:ug<=um/3,limitU:um/3}};
+
+/* ---------- рендер ---------- */
+function render(){
+  const steps=allSteps(), done=steps.filter(isDone).length;
+  $('#progBadge').textContent=`шагов: ${done}/${steps.length}`;
+  $('#workDate').value=S.date||'';
+  const v=D.validity, vb=$('#validBadge');
+  if(v.onlineVerified){vb.className='badge ok';vb.textContent='стандарты сверены '+v.lastVerifiedOn;}
+  else{vb.className='badge warn';vb.textContent=`актуальность не подтверждена после ${v.assembledOn}`;}
+  renderSteps(); renderCalc(); renderDev(); renderStd(); renderExp();
+}
+function val(s){return Object.assign({},collect(),st(s.id).f)}
+function collect(){const o={}; for(const p of D.phases)for(const s of p.steps)Object.assign(o,st(s.id).f); return o}
+
+function renderSteps(){
+  const root=$('#tab-steps'); root.innerHTML='';
+  const v=D.validity;
+  const ban=document.createElement('div'); ban.className='warn';
+  ban.innerHTML=`<b>Офлайн-режим.</b> ${esc(v.statusText)}<br><span class="sm">${esc(v.recheckHint)}</span>`;
+  root.appendChild(ban);
+  D.phases.forEach(p=>{
+    const d=document.createElement('div'); d.className='phase';
+    const sd=p.steps.filter(isDone).length;
+    d.innerHTML=`<button class="ph-t"><span class="pin">${esc(p.phase.id)}</span><span style="flex:1">
+      <b>${esc(p.phase.title)}</b><span class="sub">${esc(p.phase.intro)}</span>
+      <span class="sub">${sd}/${p.steps.length} шагов закрыто · ${esc(p.phase.gost.join('; '))}</span></span></button>`;
+    d.querySelector('.ph-t').onclick=()=>{const b=d.querySelector('.steps');const o=b.classList.toggle('hide');if(!o)p.steps.forEach(s=>d.appendChild(stepEl(s)))};
+    d.appendChild(Object.assign(document.createElement('div'),{className:'steps hide'}));
+    root.appendChild(d);
+  });
+}
+function stepEl(s){
+  const el=document.createElement('div'); el.className='step';
+  const done=isDone(s), x=st(s.id);
+  el.innerHTML=`<button class="s-t"><span class="pin ${done?'done':''}">${done?'✓':s.id}</span>
+    <span style="flex:1"><b>${esc(s.title)}</b><span class="sub">${esc(s.action.slice(0,110))}${s.action.length>110?'…':''}</span></span></button>`;
+  const body=document.createElement('div'); body.className='body hide';
+  const q=Object.assign({},collect(),x.f);
+  body.innerHTML=`
+    <div class="gost"><b>Основание:</b> ${s.gost.map(g=>esc(g)).join('<br>')}</div>
+    <div class="act">${esc(s.action)}</div>
+    ${s.hint?`<div class="hint">${esc(s.hint)}</div>`:''}
+    ${(s.warn||[]).map(w=>`<div class="warn">${esc(w)}</div>`).join('')}
+    ${(s.critical||[]).map(w=>`<div class="crit">${esc(w)}</div>`).join('')}
+    ${(s.equipment||[]).length?`<div class="sm" style="margin-top:8px">Оборудование: ${s.equipment.map(e=>esc(devName(e))).join(', ')}</div>`:''}
+    ${(s.checklist||[]).map((t,i)=>`<label class="ck"><input type="checkbox" data-ck="${i}" ${x.c['ck'+i]?'checked':''}><span>${esc(t)}</span></label>`).join('')}
+    ${(s.fields||[]).map(f=>fieldHtml(s,f,x)).join('')}
+    <div class="calc" data-calc="${s.id}"></div>
+    <div class="accept">Критерий приёмки: ${esc(s.accept||'—')}</div>
+    <div class="nav2"><button class="okb">Пометить выполненным</button></div>`;
+  el.appendChild(body);
+  el.querySelector('.s-t').onclick=()=>body.classList.toggle('hide');
+  $$('[data-ck]',body).forEach(cb=>cb.onchange=()=>{st(s.id).c['ck'+cb.dataset.ck]=cb.checked;save();render()});
+  $$('[data-f]',body).forEach(inp=>{
+    const k=inp.dataset.f;
+    if(inp.type==='checkbox'){inp.checked=!!x.c[k];inp.onchange=()=>{st(s.id).c[k]=inp.checked;save();render()}}
+    else{inp.value=x.f[k]??'';inp.oninput=()=>{st(s.id).f[k]=inp.value;save();paintCalc(s.id)}}});
+  body.querySelector('.okb').onclick=()=>{
+    if(!isDone(s)){const miss=[];(s.fields||[]).filter(f=>f.required).forEach(f=>{
+      if(f.type==='check'?!x.c[f.k]:String(x.f[f.k]??'').trim()==='')miss.push(f.label)});
+      (s.checklist||[]).forEach((t,i)=>{if(!x.c['ck'+i])miss.push('чек-лист: '+t.slice(0,50))});
+      alert('Шаг не закрыт. Не заполнено:\n\n• '+miss.join('\n• '));return}
+    st(s.id).doneAt=new Date().toISOString();save();render();};
+  setTimeout(()=>paintCalc(s.id),0);
+  return el;
+}
+function fieldHtml(s,f,x){
+  const req=f.required?' <span class="todo">*</span>':'';
+  if(f.type==='check')return `<label class="ck"><input type="checkbox" data-f="${f.k}" ${x.c[f.k]?'checked':''}><span>${esc(f.label)}${req}</span></label>`;
+  if(f.type==='select')return `<label>${esc(f.label)}${req}</label><select data-f="${f.k}"><option value="">—</option>${(f.opts||[]).map(o=>`<option ${x.f[f.k]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  const t=f.type==='list'?'text':(f.type||'text');
+  return `<label>${esc(f.label)}${f.unit?` (${esc(f.unit)})`:''}${req}</label>
+    <input type="${t}" data-f="${f.k}" placeholder="${esc(f.ph||'')}" inputmode="${f.type==='num'?'decimal':'text'}" autocomplete="off">`;
+}
+const CALC_TEXT={
+ de:'Эквивалентный диаметр',area:'Площадь сечения',uArea:'Погрешность площади',
+ straightRun:'Проверка прямого участка',gridCoords:'Координаты точек',prSt:'Приведение давления',
+ rhoGas:'Плотность газа',f:'Влагосодержание',dP:'Динамическое давление',velocities:'Скорости',
+ vMean:'Средняя скорость',qRaw:'Расход раб. усл.',qNorm:'Расход при н.у.',
+ resCheck:'Пригодность микроманометра',uV:'Погрешность скорости',isoFlow:'Изокинетический расход',
+ isoDeviation:'Отклонение изокинетичности',sampleVolume:'Объём пробы',sampleTime:'Время отбора',
+ v0Sample:'Объём пробы при н.у.',v0Norm:'Приведение пробы',zDust:'Запылённость',mDust:'Массовый выброс пыли',
+ mDustYear:'Пыль т/год',deltaM:'Привес Δm',deltaMassConstant:'Постоянная масса',uDm:'Погрешность привеса',
+ gainCheck:'Оценка привеса',gases:'Концентрации',lambdaCalc:'λ',cNorm:'Коэффициент приведения',
+ mComp:'Выброс ЗВ г/с',mCompYear:'Выброс ЗВ т/год',
+ uBudgetQ:'Бюджет расхода',uBudgetZ:'Бюджет запылённости',uBudgetGas:'Бюджет газа'};
+function paintCalc(id){
+  const el=$(`[data-calc="${id}"]`); if(!el)return;
+  const s=allSteps().find(x=>x.id===id); const keys=(s.calc||[]).filter(k=>C[k]);
+  if(!keys.length){el.innerHTML='<span class="sm">Автоматический расчёт для этого шага не задан.</span>';return}
+  const v=val(s); let h='<b>Автоматический расчёт</b><table>';
+  keys.forEach(k=>{let r; try{r=C[k](v)}catch(e){r=undefined}
+    h+=`<tr><td class="l">${esc(CALC_TEXT[k]||k)}</td><td>${fmtCell(k,r)}</td></tr>`});
+  h+='</table>'; el.innerHTML=h;
+}
+function fmtCell(k,r){
+  if(r===null||r===undefined)return'<span class="sm">нет данных</span>';
+  if(typeof r==='number')return fmt(r,4);
+  if(Array.isArray(r))return r.map(x=>fmt(x,4)).join('; ');
+  if(k==='straightRun')return`Dэ=${fmt(r.de,3)} м · нужно по потоку ≥${fmt(r.needU,2)} м, имеется ${fmt(r.up,2)} м (${fmt(r.rUp,2)}·Dэ) ${r.okUp?'<b style="color:#2fbf71">ОК</b>':'<b style="color:#e5484d">НЕ ОК</b>'} · после сечения нужно ≥${fmt(r.needD,2)} м, имеется ${fmt(r.dn,2)} м ${r.okDn?'ОК':'НЕ ОК'}`;
+if(k==='resCheck')return`ρг=${fmt(r.rho,4)} кг/м³ · ΔP при 4 м/с = ${fmt(r.dpAt4,2)} Па · дискретность ${fmt(r.res,2)} Па · u(ΔP)/ΔP ≈ ${fmt(r.uRel,1)} % ${r.ok?'<b style="color:#2fbf71">ОК</b>':'<b style="color:#e5484d">ПРИБОР НЕ ПРИГОДЕН</b>'}`;
+if(k==='uV')return`u(ΔP)=${fmt(r.uDeltaP,3)} Па · u(ΔP)/ΔP=${fmt(r.relQpct,2)} % · u(v)/v ≈ ${fmt(r.relVel,2)} % ${r.ok?'<b style="color:#2fbf71">ОК</b>':'<b style="color:#e5484d">ПОГРЕШНОСТЬ СЛИШКОМ ВЕЛИКА</b>'}`;
+  if(k==='gridCoords'&&r.circ)return`равноплощадочная схема: ${r.circ.join(' · ')}`;
+  if(k==='gridCoords')return`сетка ${r.n}×${r.n} = ${r.n*r.n} точек · площадь ячейки ${fmt(r.cell,4)} м² · сумма ${fmt(r.total,3)} м²<br>по a: ${r.ax.join(' / ')} м<br>по b: ${r.bx.join(' / ')} м`;
+  if(k==='isoFlow')return`d=${r.d} мм · Q=${fmt(r.qLmin,2)} л/мин`;
+  if(k==='isoDeviation')return`${fmt(r,2)} % ${Math.abs(r)<=5?'<b style="color:#2fbf71">в допуске ±5 %</b>':'<b style="color:#e5484d">вне допуска ±5 %</b>'}`;
+  if(k==='sampleTime')return`нужно ≈ ${fmt(r.min,1)} мин ${r.overLim?'<b style="color:#e5484d">— ПРЕВЫШАЕТ ПРЕДЕЛ ТАЙМЕРА</b>':'<b style="color:#2fbf71">(в пределах таймера)</b>'} · V₀≈${fmt(r.v0Liters,3)} л · Q₀≈${fmt(r.q0Lmin,3)} л/мин`;
+  if(k==='velocities')return`ρг=${fmt(r.rho,4)} кг/м³ · v сред=${fmt(r.mean,3)} м/с (из ΔP̄: ${fmt(r.meanFromAvg,3)}) · min ${fmt(r.min,2)} · max ${fmt(r.max,2)} · Σv=${fmt(r.vi.reduce((a,b)=>a+b,0),2)}`;
+  if(k==='qNorm')return`v=${fmt(r.vm,3)} м/с · S=${fmt(r.S,3)} м² · Q=${fmt(r.q,3)} м³/с · коэфф. приведения=${fmt(r.factor,4)} · Qн.у.=${fmt(r.qn,3)} м³/с`;
+  if(k==='qRaw')return`v=${fmt(r.vm,3)} м/с · S=${fmt(r.S,3)} м² · Q=${fmt(r.q,3)} м³/с`;
+  if(k==='zDust')return`Δm=${fmt(r.dm*1000,3)} мг · V=${fmt(r.rawLiters,3)} л · k=${fmt(r.factor,4)} · V₀=${fmt(r.v0,4)} л · Z=${fmt(r.z_mgm3,3)} мг/м³`;
+  if(k==='mDust')return`Z=${fmt(r.zMgm3,3)} мг/м³ · M=${fmt(r.Mgs,5)} г/с`;
+  if(k==='mDustYear')return`M=${fmt(r.Mgs,5)} г/с · Mгод=${fmt(r.ty,4)} т/год`;
+  if(k==='deltaM')return`m₁=${fmt(r.m1,6)} г · m₂=${fmt(r.m2,6)} г · Δm=${fmt(r.dm,6)} г = ${fmt(r.dmMg,3)} мг`;
+  if(k==='deltaMassConstant')return`Δm между циклами = ${fmt(r.dMg,3)} мг ${r.ok?'<b style="color:#2fbf71">— постоянная масса достигнута</b>':'<b style="color:#e5484d">— постоянная масса не достигнута</b>'}`;
+  if(k==='uDm')return`u(m)=${fmt(r.u,4)} мг · u(Δm)=√2·u(m)=${fmt(r.uDm,4)} мг · вклад ${fmt(r.rel,2)} %`;
+  if(k==='gainCheck')return`привес ${fmt(r.dmMg,3)} мг / требуется ${fmt(r.target,1)} мг · отношение ${fmt(r.ratio,3)} ${r.ok?'<b style="color:#2fbf71">ОК</b>':'<b style="color:#e5484d">МАССА НОРМЫ НЕ НАБРАНА</b>'}`;
+  if(k==='v0Sample')return`V=${fmt(r.V_L,3)} л · коэфф.=${r.factor===null?'—':fmt(r.factor,4)} · V₀=${r.v0===null?'—':fmt(r.v0,4)+' л'}`;
+  if(k==='gases')return Object.entries(r).map(([c,x])=>`${c}: сред=${fmt(x.mean,4)} · sd=${fmt(x.sd,4)} · n=${x.n}`).join('<br>')||'нет данных';
+  if(k==='mComp')return Object.entries(r).map(([c,x])=>`${c}: Cн.у.=${fmt(x.Cn,3)} мг/м³ · M=${fmt(x.Mgs,5)} г/с`).join('<br>');
+  if(k==='mCompYear')return Object.entries(r).map(([c,x])=>`${c}: ${fmt(x.Mgs,5)} г/с · ${fmt(x.ty,4)} т/год`).join('<br>');
+  if(k==='uBudgetQ')return`u(v)=${fmt(r.uVelPct,2)} % · u(Q)=${fmt(r.uQuaPct,2)} % · U(k=${r.k}) по расходу = ${fmt(r.Uq,2)} %`;
+  if(k==='uBudgetZ')return`u(Z)=${fmt(r.uZuaPct,2)} % · U(k=${r.k}) = ${fmt(r.UZ,2)} %`;
+  if(k==='uBudgetGas')return`u=${fmt(r.uPct,2)} % · U(k=${r.k})=${fmt(r.U,2)} % · ограничение «u прибора ≤ 1/3 метода»: ${r.limitOK?'<b style="color:#2fbf71">ОК</b>':'<b style="color:#e5484d">НАРУШЕНО</b>'} (предел ${fmt(r.limitU,2)} %)`;
+  if(k==='f')return r.note?('<b style="color:#e5484d">'+esc(r.note)+'</b>'):('pв='+fmt(r.pv,2)+' гПа · f='+fmt(r.f,4)+' г/м³ н.у.');
+  if(k==='rhoGas')return fmt(r,5)+' кг/м³ (сухой газ + пар)';
+  return esc(JSON.stringify(r)).slice(0,300);
+}
+function devName(id){const d=D.devices.find(x=>x.id===id); return d?d.name:id}
+function renderCalc(){
+  const v=collect(), root=$('#tab-calc');
+  const rows=[['de','Эквивалентный диаметр Dэ, м'],['area','Площадь сечения S, м²'],['uArea','Погрешность площади, %'],
+   ['straightRun','Проверка прямого участка'],['gridCoords','Координаты точек'],['prSt','B − Pст, гПа'],
+   ['rhoGas','Плотность газа ρг, кг/м³'],['f','Влагосодержание f, г/м³'],['dP','Динамическое давление, Па'],
+   ['velocities','Скорости по точкам'],['vMean','Средняя скорость, м/с'],['qRaw','Расход раб. усл., м³/с'],
+   ['qNorm','Расход при н.у., м³/с'],['resCheck','Пригодность микроманометра'],['uV','Погрешность скорости, %'],
+   ['isoFlow','Изокинетический расход, л/мин'],['isoDeviation','Отклонение изокинетичности, %'],
+   ['sampleVolume','Требуемый объём пробы, л'],['sampleTime','Расчётное время отбора, мин'],
+   ['v0Sample','Объём пробы при н.у., л'],['v0Norm','Приведение пробы к н.у.'],['zDust','Запылённость Z, мг/м³'],
+   ['mDust','Массовый выброс пыли, г/с'],['mDustYear','Пыль, т/год'],['deltaM','Привес Δm, г'],
+   ['deltaMassConstant','Постоянная масса'],['uDm','Погрешность привеса'],['gainCheck','Оценка привеса'],
+   ['gases','Концентрации'],['lambdaCalc','Коэффициент λ'],['cNorm','Коэффициент приведения'],
+   ['mComp','Выброс ЗВ, г/с'],['mCompYear','Выброс ЗВ, т/год'],
+   ['uBudgetQ','Бюджет неопределённости расхода'],['uBudgetZ','Бюджет неопределённости запылённости'],['uBudgetGas','Бюджет неопределённости газов']];
+  let h=`<div class="card"><b>Единая панель расчётов</b><div class="sm">Считает по значениям, введённым в шагах. Всё в гПа и метрах. Пустые ячейки ждут данных.</div></div><table><tr><th>Величина</th><th>Значение</th></tr>`;
+  rows.forEach(([k,lab])=>{let r;try{r=C[k](v)}catch(e){r=undefined}
+    h+=`<tr><td>${esc(lab)}</td><td>${fmtCell(k,r)}</td></tr>`});
+  root.innerHTML=h+'</table>';
+}
+function renderDev(){
+  const root=$('#tab-dev'), wd=S.date;
+  let h=`<div class="card"><b>Карточки приборов</b><div class="sm">Пустые поля помечены «заполнить из паспорта». Пока поле не заполнено, прибор не считается пригодным: соответствующий шаг не закрывается. Проверка сроков поверки идёт по дате выполнения работ.</div></div>`;
+  D.devices.forEach(d=>{
+    const missing=[]; ['zavodskoyNo','svedetelstvoNo','povеркаDo','metodPovерki'].forEach(k=>{if(!d[k])missing.push(k)});
+    const pd=d.povеркаDo?new Date(d.povеркаDo):null, isExpired=pd&&wd&&pd<new Date(wd);
+    const days=pd&&wd?Math.round((pd-new Date(wd))/864e5):null;
+    h+=`<div class="card"><b>${esc(d.name)}</b> <span class="sm">${esc(d.model||'модель не указана')}</span>
+      <div style="margin:6px 0">
+        <span class="badge ${d.verifiedBy?'ok':''}">${d.verifiedBy?'данные подтверждены':'ТРЕБУЕТ ПАСПОРТА'}</span>
+        <span class="badge ${isExpired?'bad':(pd&&wd?'ok':'')}">${pd?('поверка до '+d.povеркаDo+(days!==null?' ('+days+' дн.)':'')):'поверка не внесена'}</span>
+      </div>
+      <table><tr><th>Заводской №</th><td>${esc(d.zavodskoyNo)||'<span class="todo">заполнить из паспорта</span>'}</td></tr>
+      <tr><th>№ свидетельства</th><td>${esc(d.svedetelstvoNo)||'<span class="todo">заполнить из свидетельства</span>'}</td></tr>
+      <tr><th>Поверка до / МП</th><td>${esc(d.povерkaDo||'<span class=todo>заполнить</span>')} / ${esc(d.metodPovерki||'<span class=todo>заполнить</span>')}</td></tr>
+      <tr><th>Диапазон</th><td>${esc(d.rangeNote||d.range||'<span class=todo>заполнить из паспорта</span>')}</td></tr>
+      <tr><th>Погрешность</th><td>${esc(d.accuracy||d.accuracyNote||'<span class=todo>заполнить</span>')}</td></tr>
+      <tr><th>Разрешение / цена деления</th><td>${d.resolutionNote?esc(d.resolutionNote):(d.resolution!=null?'<b>'+esc(d.resolution)+'</b>':'<span class="todo">заполнить из РЭ / паспорта</span>')}</td></tr>
+      <tr><th>Основание</th><td>${(d.gost||[]).map(esc).join('<br>')}</td></tr></table>
+      ${missing.length?`<div class="crit">Не заполнено обязательных полей: ${missing.length}. Прибор не пригоден к применению в протоколе до заполнения.</div>`:''}
+      ${isExpired?`<div class="crit">Поверка просрочена на ${-days} дн. Шаги с этим прибором заблокированы.</div>`:''}
+      ${(d.critical||[]).map(c=>`<div class="warn">${esc(c)}</div>`).join('')}
+      ${d.capability?`<div class="hint">Каналы: ${Object.entries(d.capability).map(([k,v])=>k+' — '+esc(v)).join('; ')}</div>`:''}
+      ${d.verifiedBy?`<div class="sm">Источник: ${esc(d.verifiedBy)}</div>`:''}</div>`;
+  });
+  root.innerHTML=h;
+}
+function renderStd(){
+  const v=D.validity; let h=`<div class="card"><b>Карта стандартов</b>
+    <div class="sm">Дата сверки: <b>${esc(v.assembledOn)}</b>. Онлайн-проверка: <b>${v.onlineVerified?'выполнена':'НЕ выполнялась'}</b>.</div>
+    <div class="warn">${esc(v.statusText)}</div><div class="hint">${esc(v.recheckHint)}</div>
+    <div class="sm">${esc(v.appRule)}</div></div>`;
+  D.standards.forEach(s=>{const ok=!!S.verifiedStd[s.id];
+    h+=`<div class="card"><b>${esc(s.name)}</b> <div class="sm">${esc(s.title)}</div>
+    <div style="margin:6px 0"><span class="badge ${ok?'ok':'warn'}">${ok?'сверено вручную '+esc(S.verifiedStd[s.id]):'актуальность не подтверждена'}</span>
+      ${s.onlineVerified?'<span class="badge ok">сверено онлайн</span>':''}</div>
+    <div class="sm">Применение: ${esc(s.use)}</div>
+    ${(s.keyClauses||[]).length?`<div class="sm">Разделы: ${s.keyClauses.map(esc).join('; ')}</div>`:''}
+    ${s.note?`<div class="hint">${esc(s.note)}</div>`:''}
+    ${s.critical?`<div class="crit">${esc(s.critical)}</div>`:''}
+    <div class="nav2"><button data-std="${esc(s.id)}">${ok?'Снять отметку':'Отметить как сверено вручную'}</button></div></div>`});
+  const root=$('#tab-std'); root.innerHTML=h;
+  $$('[data-std]').forEach(b=>b.onclick=()=>{const id=b.dataset.std;
+    if(S.verifiedStd[id])delete S.verifiedStd[id];else S.verifiedStd[id]=new Date().toISOString().slice(0,10);
+    save();render()});
+}
+function renderExp(){
+  const steps=allSteps(), done=steps.filter(isDone);
+  const sv=D.standards.filter(s=>S.verifiedStd[s.id]).map(s=>s.name);
+  let md=`# Протокол измерений параметров газопылевого потока\n\nДата работ: ${S.date||'—'}\n`;
+  md+=`Закрыто шагов: ${done.length}/${steps.length}\n\n`;
+  done.forEach(s=>{const x=st(s.id);
+    md+=`## ${s.id}. ${s.title}\nОснование: ${s.gost.join('; ')}\nДействие: ${s.action}\n`;
+    if(s.accept)md+=`Критерий: ${s.accept}\n`;
+    Object.entries(x.f).forEach(([k,val2])=>{const f=(s.fields||[]).find(z=>z.k===k);
+      if(f)md+=`- ${f.label}: ${val2}\n`});
+    Object.entries(x.c).forEach(([k,v2])=>{if(v2&&k.startsWith('ck'))md+=`- [x] ${s.checklist[+k.slice(2)]}\n`});
+    md+='\n'});
+  md+=`\n---\nСтандарты, отмеченные как сверенные: ${sv.join(', ')||'—'}\n`;
+  md+=`Дата сборки данных приложения: ${D.validity.assembledOn}. Онлайн-сверка стандартов: ${D.validity.onlineVerified?'да':'нет'}\n`;
+  const root=$('#tab-exp'); root.innerHTML=`<div class="card"><b>Экспорт</b>
+    <div class="sm">Приложение работает офлайн. Экспорт — в текстовый файл протокола и печать в PDF средствами браузера.</div>
+    <div class="nav2"><button id="dl">Скачать протокол (.md)</button><button id="pr">Печать / PDF</button><button id="rs">Сбросить прогресс</button></div></div>
+    <div class="card"><b>Резервная копия</b><div class="nav2"><button id="ex">Скачать данные сессии (.json)</button><button id="im">Загрузить сессию</button></div></div>`;
+  $('#dl',root).onclick=()=>dl(md,'protokol-'+(S.date||'bez-daty')+'.md','text/markdown');
+  $('#pr',root).onclick=()=>window.print();
+  $('#rs',root).onclick=()=>{if(confirm('Удалить все введённые значения?')){localStorage.removeItem(LS);S=load();render()}};
+  $('#ex',root).onclick=()=>dl(JSON.stringify(S,null,1),'sessiya.json','application/json');
+  $('#im',root).onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.json';
+    i.onchange=()=>{const f=i.files[0];const fr=new FileReader();
+      fr.onload=()=>{try{S=Object.assign({v:{},date:'',verifiedStd:{}},JSON.parse(fr.result));save();render()}catch(e){alert('Файл не читается')}};
+      fr.readAsText(f)};i.click()};
+}
+function dl(txt,name,mime){const b=new Blob([txt],{type:mime+';charset=utf-8'}),u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+
+/* ---------- события ---------- */
+$$('nav button').forEach(b=>b.onclick=()=>{$$('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  ['steps','calc','dev','std','exp'].forEach(t=>$('#tab-'+t).classList.toggle('hide',t!==b.dataset.tab));
+  if(b.dataset.tab==='calc')renderCalc()});
+$('#workDate').onchange=e=>{S.date=e.target.value;save();renderDev()};
+window.addEventListener('online',()=>{$('#netBadge').className='badge ok';$('#netBadge').textContent='сеть доступна'});
+window.addEventListener('offline',()=>{$('#netBadge').className='badge';$('#netBadge').textContent='офлайн-режим'});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
+render();
+</script>
+</body>
+</html>
